@@ -80,3 +80,106 @@ tabla_cant_generos <- datos_tp %>%
   mutate(porcentaje = (frecuencia_absoluta / sum(frecuencia_absoluta)) * 100)
 
 print(tabla_cant_generos)
+
+# --- C. Visualización de Datos (ggplot2) ---
+
+# 1. Gráfico de Barras para Variable Cualitativa Nominal (Género)
+grafico_generos <- ggplot(data = tabla_generos, mapping = aes(x = reorder(genero_principal, frecuencia_absoluta), y = frecuencia_absoluta)) +
+  geom_col(fill = "steelblue", color = "black") +
+  coord_flip() + # Invierte los ejes (X pasa a ser Y)
+  labs(
+    title = "Distribución de Títulos por Género Principal (2023)",
+    x = "Género Cinematográfico",
+    y = "Frecuencia Absoluta"
+  ) +
+  theme_minimal()
+
+print(grafico_generos)
+
+# 2. Histograma para Variable Cuantitativa Continua (Duración)
+grafico_histograma <- ggplot(data = datos_tp, mapping = aes(x = runtimeMinutes)) +
+  geom_histogram(fill = "darkorange", color = "black", bins = 20) +
+  labs(
+    title = "Distribución Empírica de la Duración de los Títulos",
+    x = "Duración (minutos)",
+    y = "Frecuencia Absoluta"
+  ) +
+  theme_minimal()
+
+print(grafico_histograma)
+
+# 3. Boxplot para Variable Cuantitativa Continua (Duración)
+grafico_boxplot <- ggplot(data = datos_tp, mapping = aes(y = runtimeMinutes)) +
+  geom_boxplot(fill = "lightgreen", color = "black") +
+  labs(
+    title = "Dispersión y Valores Atípicos de la Duración",
+    y = "Duración (minutos)",
+    x = ""
+  ) +
+  theme_minimal()
+
+print(grafico_boxplot)
+
+# =====================================================
+# SEGUNDA PARTE - ESTIMACIÓN (Intervalos de Confianza)
+# =====================================================
+
+# a) Variable cualitativa elegida: categoria_duracion
+# Justificación: permite comparar el comportamiento de la cantidad de géneros
+# entre cortometrajes y largometrajes, dos subpoblaciones con lógicas
+# de producción distintas. Es relevante porque se espera que el mercado
+# cinematográfico de 2023 muestre diferencias estructurales entre ambos formatos.
+
+# b) Parámetro de interés: media poblacional de cant_generos
+#    µ_corto  = media de cant_géneros en la subpoblación de Cortometrajes
+#    µ_largo  = media de cant_géneros en la subpoblación de Largometrajes
+
+# Filtramos los dos grupos principales (descartamos Mediometraje si n es pequeño)
+grupos_ic <- datos_tp %>%
+  filter(categoria_duracion %in% c("Cortometraje", "Largometraje"))
+
+# c) Construcción de ICs al 95% para cada grupo
+
+ic_por_grupo <- grupos_ic %>%
+  group_by(categoria_duracion) %>%
+  summarise(
+    n         = n(),
+    media     = mean(cant_generos, na.rm = TRUE),
+    desvio_s  = sd(cant_generos, na.rm = TRUE),
+    error_est = desvio_s / sqrt(n),
+    t_critico = qt(0.975, df = n - 1),   # t bilateral al 95%
+    lim_inf   = media - t_critico * error_est,
+    lim_sup   = media + t_critico * error_est,
+    .groups = "drop"
+  )
+
+print(ic_por_grupo)
+
+# Visualización: ICs con punto (media) y barras de error
+grafico_ic <- ggplot(ic_por_grupo, aes(x = categoria_duracion, y = media, color = categoria_duracion)) +
+  geom_point(size = 4) +
+  geom_errorbar(aes(ymin = lim_inf, ymax = lim_sup), width = 0.2, linewidth = 1.2) +
+  labs(
+    title    = "IC 95% para la Cantidad Media de Géneros por Categoría de Duración",
+    subtitle = "Estimación puntual ± margen de error (t de Student)",
+    x        = "Categoría de Duración",
+    y        = "Cantidad Media de Géneros",
+    color    = "Categoría"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+print(grafico_ic)
+
+# Boxplot comparativo: duración por categoría (opcional pero valorado)
+grafico_boxplot_grupos <- ggplot(datos_tp, aes(x = categoria_duracion, y = cant_generos, fill = categoria_duracion)) +
+  geom_boxplot(color = "black") +
+  labs(
+    title = "Distribución de Cantidad de Géneros por Categoría de Duración",
+    x = "Categoría",
+    y = "Cantidad de Géneros"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+print(grafico_boxplot_grupos)
