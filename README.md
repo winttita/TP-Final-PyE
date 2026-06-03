@@ -47,7 +47,7 @@ Una vez descargado, descomprimí el archivo y colocá `title.basics.tsv` en la m
 
 ---
 
-## ▶️ Cómo reproducir el análisis
+## Cómo reproducir el análisis
 
 ### Requisitos
 
