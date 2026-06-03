@@ -66,3 +66,17 @@ tabla_generos <- datos_tp %>%
 
 # Mostrar la tabla en la consola
 print(tabla_generos)
+
+# C. Análisis de Frecuencias: Variable Cualitativa Ordinal (Categoría de Duración)
+tabla_categorias <- datos_tp %>%
+  count(categoria_duracion, name = "frecuencia_absoluta") %>%
+  mutate(porcentaje = (frecuencia_absoluta / sum(frecuencia_absoluta)) * 100)
+
+print(tabla_categorias)
+
+# D. Análisis Numérico/Frecuencias: Variable Cuantitativa Discreta (Cantidad de Géneros)
+tabla_cant_generos <- datos_tp %>%
+  count(cant_generos, name = "frecuencia_absoluta") %>%
+  mutate(porcentaje = (frecuencia_absoluta / sum(frecuencia_absoluta)) * 100)
+
+print(tabla_cant_generos)
